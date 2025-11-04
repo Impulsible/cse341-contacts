@@ -13,15 +13,18 @@ const connectDB = async () => {
 
     console.log('🔗 Attempting MongoDB connection...');
     
-    // Connection options that work with Render's environment
+    // Connection options for Render compatibility
     const clientOptions = {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      // Let the connection string handle SSL/TLS
+      // Remove all SSL-related options, let MongoDB handle it
     };
     
     client = new MongoClient(uri, clientOptions);
     await client.connect();
+    
+    // Test the connection
+    await client.db().admin().ping();
     
     dbConnection = client.db();
     console.log('✅ Connected to MongoDB successfully');
