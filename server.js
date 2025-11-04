@@ -1,3 +1,10 @@
+// TEMPORARY FIX - Hardcode MongoDB connection
+process.env.MONGODB_URI = 'mongodb+srv://henryosuagwu22_db_user:Supreme101@impulsible.3xejf8t.mongodb.net/contactsdb?retryWrites=true&w=majority&tls=true';
+process.env.PORT = '3000';
+process.env.NODE_ENV = 'development';
+
+console.log('🔧 Using hardcoded MongoDB URI for testing');
+
 const express = require('express');
 const cors = require('cors');
 const { connectDB, getDB } = require('./config/database');
@@ -12,16 +19,22 @@ app.use(express.json());
 // Global variable to track DB connection
 let dbConnected = false;
 
-// Connect to MongoDB on startup
-connectDB().then(() => {
-  dbConnected = true;
-  console.log('✅ MongoDB connected successfully');
-}).catch(error => {
-  console.log('❌ MongoDB connection failed:', error.message);
-  dbConnected = false;
-});
+// Connect to MongoDB immediately
+async function initializeDatabase() {
+  try {
+    await connectDB();
+    dbConnected = true;
+    console.log('✅ MongoDB connected successfully');
+  } catch (error) {
+    console.log('❌ MongoDB connection failed:', error.message);
+    dbConnected = false;
+  }
+}
 
-// Basic route - always works
+// Start database connection
+initializeDatabase();
+
+// Basic route
 app.get('/', (req, res) => {
   res.json({ 
     message: 'CSE 341 Contacts API - Hello World!',
@@ -35,12 +48,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check - always works
+// Health check
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV,
     database: dbConnected ? 'Connected' : 'Not connected'
   });
 });
@@ -51,7 +64,8 @@ app.get('/contacts', async (req, res) => {
     if (!dbConnected) {
       return res.status(500).json({
         success: false,
-        message: 'Database not connected. Please check MongoDB connection.'
+        message: 'Database not connected. Please wait for connection to establish.',
+        databaseStatus: 'Not connected'
       });
     }
 
@@ -61,14 +75,16 @@ app.get('/contacts', async (req, res) => {
     res.json({
       success: true,
       count: contacts.length,
-      data: contacts
+      data: contacts,
+      databaseStatus: 'Connected'
     });
   } catch (error) {
     console.error('Error fetching contacts:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching contacts from database',
-      error: error.message
+      message: 'Error fetching contacts',
+      error: error.message,
+      databaseStatus: 'Error'
     });
   }
 });
@@ -131,6 +147,7 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`🗄️  Database: ${dbConnected ? 'Connected' : 'Connecting...'}`);
 });
 
 module.exports = app;
