@@ -1,13 +1,9 @@
-// TEMPORARY FIX - Hardcode MongoDB connection
-process.env.MONGODB_URI = 'mongodb+srv://henryosuagwu22_db_user:Supreme101@impulsible.3xejf8t.mongodb.net/contactsdb?retryWrites=true&w=majority&tls=true';
-process.env.PORT = '3000';
-process.env.NODE_ENV = 'development';
-
-console.log('🔧 Using hardcoded MongoDB URI for testing');
-
 const express = require('express');
 const cors = require('cors');
 const { connectDB, getDB } = require('./config/database');
+
+// Load environment variables
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,9 +15,17 @@ app.use(express.json());
 // Global variable to track DB connection
 let dbConnected = false;
 
-// Connect to MongoDB immediately
+// Connect to MongoDB
 async function initializeDatabase() {
   try {
+    // Check if MongoDB URI is available
+    if (!process.env.MONGODB_URI) {
+      console.log('❌ MONGODB_URI not found in environment variables');
+      dbConnected = false;
+      return;
+    }
+
+    console.log('🔗 Attempting MongoDB connection...');
     await connectDB();
     dbConnected = true;
     console.log('✅ MongoDB connected successfully');
@@ -44,7 +48,8 @@ app.get('/', (req, res) => {
       getAllContacts: 'GET /contacts',
       getContactById: 'GET /contacts/:id'
     },
-    database: dbConnected ? 'Connected' : 'Not connected'
+    database: dbConnected ? 'Connected' : 'Not connected',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -53,7 +58,7 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
+    environment: process.env.NODE_ENV || 'development',
     database: dbConnected ? 'Connected' : 'Not connected'
   });
 });
@@ -64,7 +69,7 @@ app.get('/contacts', async (req, res) => {
     if (!dbConnected) {
       return res.status(500).json({
         success: false,
-        message: 'Database not connected. Please wait for connection to establish.',
+        message: 'Database not connected',
         databaseStatus: 'Not connected'
       });
     }
@@ -148,6 +153,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📍 Local: http://localhost:${PORT}`);
   console.log(`🗄️  Database: ${dbConnected ? 'Connected' : 'Connecting...'}`);
+  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;

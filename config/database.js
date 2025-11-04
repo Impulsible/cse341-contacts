@@ -13,10 +13,11 @@ const connectDB = async () => {
 
     console.log('🔗 Attempting MongoDB connection...');
     
-    // Simple connection options for Render
+    // Connection options that work with Render's environment
     const clientOptions = {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
+      // Let the connection string handle SSL/TLS
     };
     
     client = new MongoClient(uri, clientOptions);
