@@ -4,10 +4,11 @@
   "description": "Contacts API for CSE 341 Web Services course",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-production.js",
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "import-data": "node scripts/importData.js"
+    "import-data": "node scripts/importData.js",
+    "production": "node server-production.js"
   },
   "repository": {
     "type": "git",

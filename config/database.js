@@ -13,12 +13,15 @@ const connectDB = async () => {
 
     console.log('🔗 Attempting MongoDB connection...');
     
-    client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
+    // Simple connection options for Render
+    const clientOptions = {
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-    });
+    };
     
+    client = new MongoClient(uri, clientOptions);
     await client.connect();
+    
     dbConnection = client.db();
     console.log('✅ Connected to MongoDB successfully');
     
