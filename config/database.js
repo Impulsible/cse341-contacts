@@ -11,7 +11,17 @@ const connectDB = async () => {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }
 
-    client = new MongoClient(uri);
+    // Add MongoDB connection options for SSL
+    const clientOptions = {
+      // These options help with SSL/TLS issues
+      tls: true,
+      tlsAllowInvalidCertificates: false,
+      retryWrites: true,
+      w: 'majority'
+    };
+
+    client = new MongoClient(uri, clientOptions);
+    
     await client.connect();
     dbConnection = client.db();
     console.log('✅ Connected to MongoDB successfully');
@@ -19,7 +29,7 @@ const connectDB = async () => {
     return dbConnection;
   } catch (error) {
     console.error('❌ Failed to connect to MongoDB:', error.message);
-    throw error; // Re-throw to handle in server.js
+    throw error;
   }
 };
 
