@@ -1,26 +1,27 @@
 const express = require('express');
 const cors = require('cors');
-const { connectDB } = require('./config/database');
-
-// Hardcode environment variables to avoid .env issues
-process.env.MONGODB_URI = 'mongodb+srv://henryosuagwu22_db_user:Supreme101@impulsible.3xejf8t.mongodb.net/contactsdb?retryWrites=true&w=majority';
-process.env.PORT = '3000';
-process.env.NODE_ENV = 'development';
+const { connectDB, getDB } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Connect to MongoDB
-connectDB();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/contacts', require('./routes/contacts'));
+// Global variable to track DB connection
+let dbConnected = false;
 
-// Basic route
+// Connect to MongoDB on startup
+connectDB().then(() => {
+  dbConnected = true;
+  console.log('✅ MongoDB connected successfully');
+}).catch(error => {
+  console.log('❌ MongoDB connection failed:', error.message);
+  dbConnected = false;
+});
+
+// Basic route - always works
 app.get('/', (req, res) => {
   res.json({ 
     message: 'CSE 341 Contacts API - Hello World!',
@@ -29,20 +30,96 @@ app.get('/', (req, res) => {
     endpoints: {
       getAllContacts: 'GET /contacts',
       getContactById: 'GET /contacts/:id'
-    }
+    },
+    database: dbConnected ? 'Connected' : 'Not connected'
   });
 });
 
-// Health check route
+// Health check - always works
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV || 'development',
+    database: dbConnected ? 'Connected' : 'Not connected'
   });
 });
 
-// FIXED: 404 handler - use function instead of '*'
+// GET all contacts
+app.get('/contacts', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not connected. Please check MongoDB connection.'
+      });
+    }
+
+    const db = getDB();
+    const contacts = await db.collection('contacts').find().toArray();
+    
+    res.json({
+      success: true,
+      count: contacts.length,
+      data: contacts
+    });
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching contacts from database',
+      error: error.message
+    });
+  }
+});
+
+// GET single contact by ID
+app.get('/contacts/:id', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not connected'
+      });
+    }
+
+    const { ObjectId } = require('mongodb');
+    const db = getDB();
+    const contactId = req.params.id;
+    
+    if (!ObjectId.isValid(contactId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid contact ID format'
+      });
+    }
+
+    const contact = await db.collection('contacts').findOne({ 
+      _id: new ObjectId(contactId) 
+    });
+
+    if (!contact) {
+      return res.status(404).json({
+        success: false,
+        message: 'Contact not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: contact
+    });
+  } catch (error) {
+    console.error('Error fetching contact:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching contact',
+      error: error.message
+    });
+  }
+});
+
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
