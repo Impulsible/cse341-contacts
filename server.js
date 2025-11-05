@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { connectDB, getDB } = require('./config/database');
+const { specs, swaggerUi } = require('./config/swagger');
 
 // Load environment variables
 require('dotenv').config();
@@ -18,10 +19,8 @@ let dbConnected = false;
 // Connect to MongoDB
 async function initializeDatabase() {
   try {
-    // Check if MongoDB URI is available
     if (!process.env.MONGODB_URI) {
-      console.log('❌ MONGODB_URI not found in environment variables');
-      dbConnected = false;
+      console.log('⚠️  MONGODB_URI not found - running without database');
       return;
     }
 
@@ -38,6 +37,12 @@ async function initializeDatabase() {
 // Start database connection
 initializeDatabase();
 
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+
+// Routes
+app.use('/contacts', require('./routes/contacts'));
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ 
@@ -46,14 +51,18 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       getAllContacts: 'GET /contacts',
-      getContactById: 'GET /contacts/:id'
+      getContactById: 'GET /contacts/:id',
+      createContact: 'POST /contacts',
+      updateContact: 'PUT /contacts/:id',
+      deleteContact: 'DELETE /contacts/:id',
+      apiDocs: 'GET /api-docs'
     },
     database: dbConnected ? 'Connected' : 'Not connected',
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Health check
+// Health check route
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -61,83 +70,6 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     database: dbConnected ? 'Connected' : 'Not connected'
   });
-});
-
-// GET all contacts
-app.get('/contacts', async (req, res) => {
-  try {
-    if (!dbConnected) {
-      return res.status(500).json({
-        success: false,
-        message: 'Database not connected',
-        databaseStatus: 'Not connected'
-      });
-    }
-
-    const db = getDB();
-    const contacts = await db.collection('contacts').find().toArray();
-    
-    res.json({
-      success: true,
-      count: contacts.length,
-      data: contacts,
-      databaseStatus: 'Connected'
-    });
-  } catch (error) {
-    console.error('Error fetching contacts:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching contacts',
-      error: error.message,
-      databaseStatus: 'Error'
-    });
-  }
-});
-
-// GET single contact by ID
-app.get('/contacts/:id', async (req, res) => {
-  try {
-    if (!dbConnected) {
-      return res.status(500).json({
-        success: false,
-        message: 'Database not connected'
-      });
-    }
-
-    const { ObjectId } = require('mongodb');
-    const db = getDB();
-    const contactId = req.params.id;
-    
-    if (!ObjectId.isValid(contactId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid contact ID format'
-      });
-    }
-
-    const contact = await db.collection('contacts').findOne({ 
-      _id: new ObjectId(contactId) 
-    });
-
-    if (!contact) {
-      return res.status(404).json({
-        success: false,
-        message: 'Contact not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: contact
-    });
-  } catch (error) {
-    console.error('Error fetching contact:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching contact',
-      error: error.message
-    });
-  }
 });
 
 // 404 handler
@@ -152,8 +84,8 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
   console.log(`🗄️  Database: ${dbConnected ? 'Connected' : 'Connecting...'}`);
-  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;

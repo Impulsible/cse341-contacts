@@ -4,8 +4,37 @@ GET http://localhost:3000/
 ### Health check
 GET http://localhost:3000/health
 
+### API Documentation
+GET http://localhost:3000/api-docs
+
 ### Get all contacts
 GET http://localhost:3000/contacts
 
-### Get single contact (get an ID from the response above)
-GET http://localhost:3000/contacts/651a1b2c3d4e5f6789abcdef
+### Get single contact by ID
+GET http://localhost:3000/contacts/{{contactId}}
+
+### Create new contact
+POST http://localhost:3000/contacts
+Content-Type: application/json
+
+{
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "email": "alice.johnson@example.com",
+  "favoriteColor": "Purple",
+  "birthday": "1992-08-25"
+}
+
+### Update contact
+PUT http://localhost:3000/contacts/{{contactId}}
+Content-Type: application/json
+
+{
+  "firstName": "Robert",
+  "lastName": "Brown",
+  "email": "robert.brown@example.com",
+  "favoriteColor": "Red"
+}
+
+### Delete contact
+DELETE http://localhost:3000/contacts/{{contactId}}
