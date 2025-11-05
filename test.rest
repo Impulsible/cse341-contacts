@@ -1,34 +1,15 @@
-### ============================================
-### CSE 341 CONTACTS API - COMPLETE TEST SUITE
-### ============================================
+### contacts api tests
 
-### 1. BASIC ENDPOINTS
-### ==================
-
-### Root endpoint
+### check if server is up
 GET http://localhost:3000/
 
-### Health check - Verify server and database
+### test database connection
 GET http://localhost:3000/health
 
-### API Documentation - Swagger UI
-GET http://localhost:3000/api-docs
-
-
-### 2. GET OPERATIONS
-### =================
-
-### Get all contacts - See what's in database
+### get all contacts
 GET http://localhost:3000/contacts
 
-### Get single contact - REPLACE WITH REAL ID AFTER GETTING ONE
-GET http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
-
-
-### 3. CREATE OPERATIONS (POST)
-### ===========================
-
-### Create contact - Test User 1
+### add first test contact
 POST http://localhost:3000/contacts
 Content-Type: application/json
 
@@ -40,7 +21,7 @@ Content-Type: application/json
   "birthday": "1990-05-15"
 }
 
-### Create contact - Test User 2
+### add second contact
 POST http://localhost:3000/contacts
 Content-Type: application/json
 
@@ -52,7 +33,7 @@ Content-Type: application/json
   "birthday": "1985-08-22"
 }
 
-### Create contact - Test User 3
+### add third contact
 POST http://localhost:3000/contacts
 Content-Type: application/json
 
@@ -64,65 +45,58 @@ Content-Type: application/json
   "birthday": "1992-12-10"
 }
 
+### verify contacts were added
+GET http://localhost:3000/contacts
 
-### 4. UPDATE OPERATIONS (PUT)
-### ==========================
+### get single contact - replace 123 with actual id
+GET http://localhost:3000/contacts/123
 
-### Update contact - REPLACE WITH REAL ID
-PUT http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
+### update contact first name
+PUT http://localhost:3000/contacts/123
 Content-Type: application/json
 
 {
-  "firstName": "Emma-Updated",
-  "favoriteColor": "Red"
+  "firstName": "Emma-New"
 }
 
-### Update contact with all fields - REPLACE WITH REAL ID
-PUT http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
+### full contact update
+PUT http://localhost:3000/contacts/123
 Content-Type: application/json
 
 {
-  "firstName": "James-Complete-Update",
-  "lastName": "Wilson-Jones",
-  "email": "james.updated@example.com",
-  "favoriteColor": "Orange",
-  "birthday": "1986-09-01"
+  "firstName": "James-Updated",
+  "lastName": "Wilson-New",
+  "email": "james.new@example.com",
+  "favoriteColor": "Yellow",
+  "birthday": "1986-01-01"
 }
 
+### delete contact
+DELETE http://localhost:3000/contacts/123
 
-### 5. DELETE OPERATIONS (DELETE)
-### =============================
+### test invalid id
+GET http://localhost:3000/contacts/abc
 
-### Delete contact - REPLACE WITH REAL ID
-DELETE http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
-
-
-### 6. ERROR TESTING
-### ================
-
-### Invalid ID format
-GET http://localhost:3000/contacts/invalid-id-123
-
-### Non-existent ID
-GET http://localhost:3000/contacts/507f1f77bcf86cd799439011
-
-### Missing required fields
+### test missing required field
 POST http://localhost:3000/contacts
 Content-Type: application/json
 
 {
-  "firstName": "Incomplete",
+  "firstName": "Test",
   "lastName": "User"
 }
 
-### Invalid email format
+### test invalid email
 POST http://localhost:3000/contacts
 Content-Type: application/json
 
 {
   "firstName": "Test",
   "lastName": "User",
-  "email": "invalid-email",
+  "email": "bademail",
   "favoriteColor": "Blue",
   "birthday": "1990-01-01"
 }
+
+### final contacts check
+GET http://localhost:3000/contacts

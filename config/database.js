@@ -8,37 +8,34 @@ const connectDB = async () => {
     const uri = process.env.MONGODB_URI;
     
     if (!uri) {
-      throw new Error('MONGODB_URI is not defined in environment variables');
+      throw new Error('MONGODB_URI missing from .env file');
     }
 
-    console.log('🔗 Attempting MongoDB connection...');
+    console.log('Connecting to MongoDB...');
     
-    // Connection options for Render compatibility
     const clientOptions = {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      // Remove all SSL-related options, let MongoDB handle it
     };
     
     client = new MongoClient(uri, clientOptions);
     await client.connect();
     
-    // Test the connection
     await client.db().admin().ping();
     
     dbConnection = client.db();
-    console.log('✅ Connected to MongoDB successfully');
+    console.log('MongoDB connected');
     
     return dbConnection;
   } catch (error) {
-    console.error('❌ Failed to connect to MongoDB:', error.message);
+    console.error('MongoDB connection failed:', error.message);
     throw error;
   }
 };
 
 const getDB = () => {
   if (!dbConnection) {
-    throw new Error('Database not initialized. Call connectDB first.');
+    throw new Error('Database not connected yet');
   }
   return dbConnection;
 };

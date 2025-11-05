@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
-async function importData() {
+async function addTestData() {
   const client = new MongoClient(process.env.MONGODB_URI);
   
   try {
@@ -9,7 +9,8 @@ async function importData() {
     const db = client.db('contactsdb');
     const contacts = db.collection('contacts');
 
-    const sampleContacts = [
+    // some test contacts to start with
+    const testContacts = [
       {
         firstName: 'John',
         lastName: 'Doe',
@@ -19,7 +20,7 @@ async function importData() {
       },
       {
         firstName: 'Jane',
-        lastName: 'Smith',
+        lastName: 'Smith', 
         email: 'jane.smith@example.com',
         favoriteColor: 'Green',
         birthday: new Date('1985-08-22')
@@ -33,14 +34,14 @@ async function importData() {
       }
     ];
 
-    const result = await contacts.insertMany(sampleContacts);
-    console.log(`Inserted ${result.insertedCount} contacts`);
+    const result = await contacts.insertMany(testContacts);
+    console.log(`added ${result.insertedCount} contacts`);
     
   } catch (error) {
-    console.error('Error importing data:', error);
+    console.error('error adding data:', error);
   } finally {
     await client.close();
   }
 }
 
-importData();
+addTestData();

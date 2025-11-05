@@ -1,0 +1,38 @@
+### RENDER DEPLOYMENT TESTING
+### =========================
+
+### Render - Root endpoint
+GET https://cse341-contacts-acjx.onrender.com/
+
+### Render - Health check
+GET https://cse341-contacts-acjx.onrender.com/health
+
+### Render - API Documentation
+GET https://cse341-contacts-acjx.onrender.com/api-docs
+
+### Render - Create contact
+POST https://cse341-contacts-acjx.onrender.com/contacts
+Content-Type: application/json
+
+{
+  "firstName": "Render-Live",
+  "lastName": "Test-User",
+  "email": "render.live@example.com",
+  "favoriteColor": "Blue",
+  "birthday": "1990-01-01"
+}
+
+### Render - Get all contacts (to get IDs)
+GET https://cse341-contacts-acjx.onrender.com/contacts
+
+### Render - Update contact (replace with real ID)
+PUT https://cse341-contacts-acjx.onrender.com/contacts/REPLACE_WITH_REAL_ID
+Content-Type: application/json
+
+{
+  "firstName": "Render-Updated",
+  "favoriteColor": "Red"
+}
+
+### Render - Delete contact (replace with real ID)
+DELETE https://cse341-contacts-acjx.onrender.com/contacts/REPLACE_WITH_REAL_ID

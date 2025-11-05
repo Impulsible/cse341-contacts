@@ -1,14 +1,14 @@
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
 
-async function importSampleData() {
+async function seedData() {
   const client = new MongoClient(process.env.MONGODB_URI);
   
   try {
     await client.connect();
     const db = client.db();
     
-    const sampleContacts = [
+    const contacts = [
       {
         firstName: "John",
         lastName: "Doe",
@@ -20,7 +20,7 @@ async function importSampleData() {
         firstName: "Jane",
         lastName: "Smith",
         email: "jane.smith@example.com",
-        favoriteColor: "Green",
+        favoriteColor: "Green", 
         birthday: new Date("1985-08-22")
       },
       {
@@ -32,25 +32,18 @@ async function importSampleData() {
       }
     ];
     
-    // Clear existing contacts
+    // clear out old data first
     await db.collection("contacts").deleteMany({});
     
-    // Insert new contacts
-    const result = await db.collection("contacts").insertMany(sampleContacts);
-    console.log("Successfully inserted " + result.insertedCount + " sample contacts");
-    
-    // Show what was inserted
-    const contacts = await db.collection("contacts").find().toArray();
-    console.log("Inserted contacts:");
-    contacts.forEach(contact => {
-      console.log("- " + contact.firstName + " " + contact.lastName + " (" + contact.email + ")");
-    });
+    // add the new contacts
+    const result = await db.collection("contacts").insertMany(contacts);
+    console.log("added " + result.insertedCount + " contacts");
     
   } catch (error) {
-    console.error("Error importing sample data:", error);
+    console.error("error seeding data:", error);
   } finally {
     await client.close();
   }
 }
 
-importSampleData();
+seedData();
