@@ -1,40 +1,128 @@
+### ============================================
+### CSE 341 CONTACTS API - COMPLETE TEST SUITE
+### ============================================
+
+### 1. BASIC ENDPOINTS
+### ==================
+
 ### Root endpoint
 GET http://localhost:3000/
 
-### Health check
+### Health check - Verify server and database
 GET http://localhost:3000/health
 
-### API Documentation
+### API Documentation - Swagger UI
 GET http://localhost:3000/api-docs
 
-### Get all contacts
+
+### 2. GET OPERATIONS
+### =================
+
+### Get all contacts - See what's in database
 GET http://localhost:3000/contacts
 
-### Get single contact by ID
-GET http://localhost:3000/contacts/{{contactId}}
+### Get single contact - REPLACE WITH REAL ID AFTER GETTING ONE
+GET http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
 
-### Create new contact
+
+### 3. CREATE OPERATIONS (POST)
+### ===========================
+
+### Create contact - Test User 1
 POST http://localhost:3000/contacts
 Content-Type: application/json
 
 {
-  "firstName": "Alice",
-  "lastName": "Johnson",
-  "email": "alice.johnson@example.com",
-  "favoriteColor": "Purple",
-  "birthday": "1992-08-25"
+  "firstName": "Emma",
+  "lastName": "Thompson",
+  "email": "emma.thompson@example.com",
+  "favoriteColor": "Blue",
+  "birthday": "1990-05-15"
 }
 
-### Update contact
-PUT http://localhost:3000/contacts/{{contactId}}
+### Create contact - Test User 2
+POST http://localhost:3000/contacts
 Content-Type: application/json
 
 {
-  "firstName": "Robert",
-  "lastName": "Brown",
-  "email": "robert.brown@example.com",
+  "firstName": "James",
+  "lastName": "Wilson",
+  "email": "james.wilson@example.com",
+  "favoriteColor": "Green",
+  "birthday": "1985-08-22"
+}
+
+### Create contact - Test User 3
+POST http://localhost:3000/contacts
+Content-Type: application/json
+
+{
+  "firstName": "Sophia",
+  "lastName": "Martinez",
+  "email": "sophia.martinez@example.com",
+  "favoriteColor": "Purple",
+  "birthday": "1992-12-10"
+}
+
+
+### 4. UPDATE OPERATIONS (PUT)
+### ==========================
+
+### Update contact - REPLACE WITH REAL ID
+PUT http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
+Content-Type: application/json
+
+{
+  "firstName": "Emma-Updated",
   "favoriteColor": "Red"
 }
 
-### Delete contact
-DELETE http://localhost:3000/contacts/{{contactId}}
+### Update contact with all fields - REPLACE WITH REAL ID
+PUT http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
+Content-Type: application/json
+
+{
+  "firstName": "James-Complete-Update",
+  "lastName": "Wilson-Jones",
+  "email": "james.updated@example.com",
+  "favoriteColor": "Orange",
+  "birthday": "1986-09-01"
+}
+
+
+### 5. DELETE OPERATIONS (DELETE)
+### =============================
+
+### Delete contact - REPLACE WITH REAL ID
+DELETE http://localhost:3000/contacts/REPLACE_WITH_REAL_ID
+
+
+### 6. ERROR TESTING
+### ================
+
+### Invalid ID format
+GET http://localhost:3000/contacts/invalid-id-123
+
+### Non-existent ID
+GET http://localhost:3000/contacts/507f1f77bcf86cd799439011
+
+### Missing required fields
+POST http://localhost:3000/contacts
+Content-Type: application/json
+
+{
+  "firstName": "Incomplete",
+  "lastName": "User"
+}
+
+### Invalid email format
+POST http://localhost:3000/contacts
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "User",
+  "email": "invalid-email",
+  "favoriteColor": "Blue",
+  "birthday": "1990-01-01"
+}
