@@ -1,224 +1,176 @@
-const { ObjectId } = require('mongodb');
-const { getDB } = require('../config/database');
+const Contact = require('../models/contact');
 
-// GET all contacts
+// @desc    Get all contacts
+// @route   GET /contacts
 const getAllContacts = async (req, res) => {
   try {
-    const db = getDB();
-    const contacts = await db.collection('contacts').find().toArray();
-    
-    res.json({
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    res.status(200).json({
       success: true,
       count: contacts.length,
       data: contacts
     });
   } catch (error) {
-    console.error('Error fetching contacts:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching contacts',
+      message: 'Server error',
       error: error.message
     });
   }
 };
 
-// GET single contact by ID
+// @desc    Get single contact by ID
+// @route   GET /contacts/:id
 const getContactById = async (req, res) => {
   try {
-    const db = getDB();
-    const contactId = req.params.id;
+    const contact = await Contact.findById(req.params.id);
     
-    if (!ObjectId.isValid(contactId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid contact ID format'
-      });
-    }
-
-    const contact = await db.collection('contacts').findOne({ 
-      _id: new ObjectId(contactId) 
-    });
-
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        message: 'Contact not found',
+        error: 'The requested contact was not found in the database'
       });
     }
-
-    res.json({
+    
+    res.status(200).json({
       success: true,
       data: contact
     });
   } catch (error) {
-    console.error('Error fetching contact:', error);
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid contact ID',
+        error: 'The provided ID format is invalid'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Error fetching contact',
+      message: 'Server error',
       error: error.message
     });
   }
 };
 
-// POST - Create new contact
+// @desc    Create new contact
+// @route   POST /contacts
 const createContact = async (req, res) => {
   try {
-    const db = getDB();
     const { firstName, lastName, email, favoriteColor, birthday } = req.body;
-
-    // Validate required fields
+    
+    // Check if all required fields are provided
     if (!firstName || !lastName || !email || !favoriteColor || !birthday) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required: firstName, lastName, email, favoriteColor, birthday'
+        message: 'Bad request - missing required fields',
+        error: 'All fields (firstName, lastName, email, favoriteColor, birthday) are required'
       });
     }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email format'
-      });
-    }
-
-    const newContact = {
+    
+    // Create new contact
+    const contact = new Contact({
       firstName,
       lastName,
       email,
       favoriteColor,
-      birthday: new Date(birthday),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+      birthday
+    });
 
-    const result = await db.collection('contacts').insertOne(newContact);
-
+    const savedContact = await contact.save();
+    
     res.status(201).json({
       success: true,
-      message: 'Contact created successfully',
-      id: result.insertedId,
-      data: newContact
+      id: savedContact._id,
+      message: 'Contact created successfully'
     });
   } catch (error) {
-    console.error('Error creating contact:', error);
-    res.status(500).json({
+    res.status(400).json({
       success: false,
-      message: 'Error creating contact',
+      message: 'Bad request - missing required fields',
       error: error.message
     });
   }
 };
 
-// PUT - Update contact
+// @desc    Update contact
+// @route   PUT /contacts/:id
 const updateContact = async (req, res) => {
   try {
-    const db = getDB();
-    const contactId = req.params.id;
+    const contact = await Contact.findById(req.params.id);
     
-    if (!ObjectId.isValid(contactId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid contact ID format'
-      });
-    }
-
-    const { firstName, lastName, email, favoriteColor, birthday } = req.body;
-
-    // Check if contact exists
-    const existingContact = await db.collection('contacts').findOne({ 
-      _id: new ObjectId(contactId) 
-    });
-
-    if (!existingContact) {
+    if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        message: 'Contact not found',
+        error: 'The requested contact was not found in the database'
       });
     }
+    
+    // Update fields that are provided
+    if (req.body.firstName !== undefined) contact.firstName = req.body.firstName;
+    if (req.body.lastName !== undefined) contact.lastName = req.body.lastName;
+    if (req.body.email !== undefined) contact.email = req.body.email;
+    if (req.body.favoriteColor !== undefined) contact.favoriteColor = req.body.favoriteColor;
+    if (req.body.birthday !== undefined) contact.birthday = req.body.birthday;
 
-    const updateData = {
-      updatedAt: new Date()
-    };
-
-    // Only update fields that are provided
-    if (firstName) updateData.firstName = firstName;
-    if (lastName) updateData.lastName = lastName;
-    if (email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid email format'
-        });
-      }
-      updateData.email = email;
-    }
-    if (favoriteColor) updateData.favoriteColor = favoriteColor;
-    if (birthday) updateData.birthday = new Date(birthday);
-
-    const result = await db.collection('contacts').updateOne(
-      { _id: new ObjectId(contactId) },
-      { $set: updateData }
-    );
-
-    if (result.modifiedCount === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No changes made to contact'
-      });
-    }
-
-    res.json({
+    const updatedContact = await contact.save();
+    
+    res.status(200).json({
       success: true,
-      message: 'Contact updated successfully',
-      id: contactId
+      data: updatedContact,
+      message: 'Contact updated successfully'
     });
   } catch (error) {
-    console.error('Error updating contact:', error);
-    res.status(500).json({
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Bad request',
+        error: 'Invalid contact ID format'
+      });
+    }
+    
+    res.status(400).json({
       success: false,
-      message: 'Error updating contact',
+      message: 'Bad request',
       error: error.message
     });
   }
 };
 
-// DELETE - Delete contact
+// @desc    Delete contact
+// @route   DELETE /contacts/:id
 const deleteContact = async (req, res) => {
   try {
-    const db = getDB();
-    const contactId = req.params.id;
+    const contact = await Contact.findById(req.params.id);
     
-    if (!ObjectId.isValid(contactId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid contact ID format'
-      });
-    }
-
-    const result = await db.collection('contacts').deleteOne({ 
-      _id: new ObjectId(contactId) 
-    });
-
-    if (result.deletedCount === 0) {
+    if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        message: 'Contact not found',
+        error: 'The requested contact was not found in the database'
       });
     }
-
+    
+    await Contact.findByIdAndDelete(req.params.id);
+    
     res.status(200).json({
       success: true,
-      message: 'Contact deleted successfully',
-      id: contactId
+      message: 'Contact deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting contact:', error);
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Bad request',
+        error: 'Invalid contact ID format'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Error deleting contact',
+      message: 'Server error',
       error: error.message
     });
   }

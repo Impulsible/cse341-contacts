@@ -27,6 +27,272 @@ const options = {
         description: 'Development server'
       }
     ],
+    tags: [
+      {
+        name: 'Contacts',
+        description: 'Contact management endpoints'
+      }
+    ],
+    paths: {
+      '/contacts': {
+        get: {
+          tags: ['Contacts'],
+          summary: 'Get all contacts',
+          description: 'Retrieve a list of all contacts',
+          responses: {
+            200: {
+              description: 'Successful operation',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: {
+                      $ref: '#/components/schemas/Contact'
+                    }
+                  }
+                }
+              }
+            },
+            500: {
+              description: 'Server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        },
+        post: {
+          tags: ['Contacts'],
+          summary: 'Create a new contact',
+          description: 'Create a new contact with all required fields',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Contact'
+                }
+              }
+            }
+          },
+          responses: {
+            201: {
+              description: 'Contact created successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      id: {
+                        type: 'string',
+                        description: 'ID of the newly created contact',
+                        example: '507f1f77bcf86cd799439011'
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            400: {
+              description: 'Bad request - missing required fields',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            500: {
+              description: 'Server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/contacts/{id}': {
+        get: {
+          tags: ['Contacts'],
+          summary: 'Get contact by ID',
+          description: 'Retrieve a specific contact by its ID',
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Contact ID',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          responses: {
+            200: {
+              description: 'Successful operation',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Contact'
+                  }
+                }
+              }
+            },
+            404: {
+              description: 'Contact not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            500: {
+              description: 'Server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        },
+        put: {
+          tags: ['Contacts'],
+          summary: 'Update contact by ID',
+          description: 'Update an existing contact',
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Contact ID',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Contact'
+                }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: 'Contact updated successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Contact'
+                  }
+                }
+              }
+            },
+            400: {
+              description: 'Bad request',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            404: {
+              description: 'Contact not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            500: {
+              description: 'Server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        },
+        delete: {
+          tags: ['Contacts'],
+          summary: 'Delete contact by ID',
+          description: 'Delete a specific contact by its ID',
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Contact ID',
+              schema: {
+                type: 'string'
+              }
+            }
+          ],
+          responses: {
+            200: {
+              description: 'Contact deleted successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Contact deleted successfully'
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            404: {
+              description: 'Contact not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            },
+            500: {
+              description: 'Server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Error'
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     components: {
       schemas: {
         Contact: {
