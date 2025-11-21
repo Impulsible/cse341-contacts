@@ -23,23 +23,29 @@ const options = {
     },
     servers: [
       {
+        // 🔥 Production Render server (MUST be first!)
+        url: 'https://cse341-contacts-acjx.onrender.com',
+        description: 'Production server'
+      },
+      {
+        // Local development server
         url: 'http://localhost:3000',
-        description: 'Development server'
+        description: 'Local development server'
       }
     ],
   },
-  apis: ['./routes/*.js'],
+  apis: ['./routes/*.js'], // path to JSDoc comments in your routes
 };
 
 const specs = swaggerJsdoc(options);
 
-// Routes
+// Mount Routes
 app.use('/contacts', require('./routes/contacts'));
 
-// Swagger documentation route
+// Swagger route
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-// Root route - Updated to match your desired response
+// Root route
 app.get('/', (req, res) => {
   res.json({
     message: "CSE 341 Contacts API - Hello World!",
@@ -54,13 +60,13 @@ app.get('/', (req, res) => {
       apiDocs: "GET /api-docs"
     },
     database: "Connected",
-    environment: "development"
+    environment: process.env.NODE_ENV || "development"
   });
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`API Docs: http://localhost:${PORT}/api-docs`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📘 Swagger Docs: http://localhost:${PORT}/api-docs`);
 });
